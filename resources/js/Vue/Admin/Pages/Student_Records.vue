@@ -94,9 +94,13 @@
                         <!-- Mobile Status Badge -->
                         <span
                             class="lg:hidden shrink-0 inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium"
-                            :class="record.is_disabled ? 'sharedStateDanger sharedStateChip ring-1' : 'sharedStateOpen sharedStateChip ring-1'"
+                            :class="record.is_disabled
+                                ? 'sharedStateDanger sharedStateChip ring-1'
+                                : record.user
+                                    ? 'sharedStateOpen sharedStateChip ring-1'
+                                    : 'sharedStateWarning sharedTile sharedRingSoft'"
                         >
-                            {{ record.is_disabled ? 'Disabled' : 'Active' }}
+                            {{ record.is_disabled ? 'Disabled' : record.user ? 'Active' : 'Unregistered' }}
                         </span>
                     </div>
 
@@ -121,9 +125,13 @@
                     <div class="hidden lg:flex justify-center">
                         <span
                             class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium"
-                            :class="record.is_disabled ? 'sharedStateDanger sharedStateChip ring-1' : 'sharedStateOpen sharedStateChip ring-1'"
+                            :class="record.is_disabled
+                                ? 'sharedStateDanger sharedStateChip ring-1'
+                                : record.user
+                                    ? 'sharedStateOpen sharedStateChip ring-1'
+                                    : 'sharedStateWarning sharedTile sharedRingSoft'"
                         >
-                            {{ record.is_disabled ? 'Disabled' : 'Active' }}
+                            {{ record.is_disabled ? 'Disabled' : record.user ? 'Active' : 'Unregistered' }}
                         </span>
                     </div>
 
@@ -425,7 +433,7 @@ const gridCols =
     'lg:grid-cols-[160px_minmax(0,1.2fr)_110px_200px] ' +
     'xl:grid-cols-[180px_minmax(0,1.2fr)_120px_220px]';
 
-const statusTabs = ['All', 'Active', 'Disabled'];
+const statusTabs = ['All', 'Active', 'Unregistered', 'Disabled'];
 const activeTab = ref('All');
 const searchQuery = ref('');
 const recordsList = ref([...props.records]);
@@ -616,7 +624,8 @@ const filteredRecords = computed(() => {
     return recordsList.value.filter(record => {
         const matchesTab =
             activeTab.value === 'All' ||
-            (activeTab.value === 'Active' && !record.is_disabled) ||
+            (activeTab.value === 'Active' && !record.is_disabled && record.user) ||
+            (activeTab.value === 'Unregistered' && !record.is_disabled && !record.user) ||
             (activeTab.value === 'Disabled' && Boolean(record.is_disabled));
 
         if (!matchesTab) return false;
