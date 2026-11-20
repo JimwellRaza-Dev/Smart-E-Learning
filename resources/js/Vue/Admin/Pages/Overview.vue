@@ -12,7 +12,7 @@
 
                 <!-- ACTIVITY ITEM -->
                 <li
-                    v-for="act in recentActivities"
+                    v-for="act in displayableActivities"
                     :key="act.id"
                     class="flex items-start gap-3 py-3 px-2 -mx-2 rounded-xl border-b sharedBorder last:border-b-0 transition-colors duration-200 sharedRowHover"
                 >
@@ -57,7 +57,7 @@
                     </div>
                 </li>
 
-                <li v-if="recentActivities.length === 0" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                <li v-if="displayableActivities.length === 0" class="flex flex-col items-center justify-center gap-2 py-10 text-center">
                     <span class="text-sm sharedTXTMuted">No recent activity yet</span>
                 </li>
 
@@ -124,6 +124,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 
 const props = defineProps({
     recentActivities: { type: Array, default: ()=>[]},
@@ -132,6 +133,21 @@ const props = defineProps({
     supabaseUrl: { type: String, default: '' },
     avatarBucket: { type: String, default: 'pictures' },
 })
+
+const studentRecordActions = [
+    'added_student_record',
+    'added_student_records',
+    'disabled_student_record',
+    'enabled_student_record',
+    'deleted_student_record',
+    'attempted_login_disabled',
+];
+
+const displayableActivities = computed(() => {
+    return (props.recentActivities || []).filter(
+        act => !studentRecordActions.includes(act.action)
+    );
+});
 
 const SUPABASE_URL = props.supabaseUrl;
 const AVATAR_BUCKET = props.avatarBucket;
@@ -217,6 +233,7 @@ const svg_d = [
     { action: 'disabled_student_record', d: 'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z' },
     { action: 'enabled_student_record', d: 'M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z' },
     { action: 'deleted_student_record', d: 'm14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0' },
+    { action: 'attempted_login_disabled', d: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z' },
     { action: 'enabled_user', d: 'M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z' },
 ]
 
@@ -244,6 +261,7 @@ const icon_style = [
     { action: 'disabled_student_record', badge: 'sharedStateDanger sharedStateTint sharedStateText' },
     { action: 'enabled_student_record', badge: 'sharedStateOpen sharedStateTint sharedStateText' },
     { action: 'deleted_student_record', badge: 'sharedStateDanger sharedStateTint sharedStateText' },
+    { action: 'attempted_login_disabled', badge: 'sharedStateDanger sharedStateTint sharedStateText' },
     { action: 'enabled_user', badge: 'sharedStateOpen sharedStateTint sharedStateText' },
 ]
 
@@ -286,6 +304,7 @@ function message(act){
         case 'disabled_student_record': return 'disabled a student ID';
         case 'enabled_student_record': return 'enabled a student ID';
         case 'deleted_student_record': return 'deleted a student ID';
+        case 'attempted_login_disabled': return 'attempted to log in with a disabled ID';
         case 'enabled_user': return `enabled ${act.target}'s account`;
         default: return '';
     }
@@ -314,6 +333,7 @@ function pillLeft(act){
         case 'disabled_student_record':
         case 'enabled_student_record':
         case 'deleted_student_record':
+        case 'attempted_login_disabled':
             return act.target;
         default:
             return null;
@@ -350,8 +370,8 @@ function pillRight(act){
 }
 
 function pillLeftStyle(act){
-    if (act.action === 'deleted_feedback' || act.action === 'deleted_student_record') {
-        return 'sharedStateDanger sharedStatePill line-through font-mono'
+    if (act.action === 'deleted_feedback' || act.action === 'deleted_student_record' || act.action === 'attempted_login_disabled') {
+        return 'sharedStateDanger sharedStatePill font-mono'
     }
     if (act.action === 'disabled_student_record') {
         return 'sharedStateDanger sharedStatePill font-mono'

@@ -15,6 +15,18 @@ class StudentRecordController extends Controller
      */
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'course' => 'required|string|in:BSCS,BSINTE,BINDTECH,COMTECH',
+            'year_level' => 'required|string|in:1st Year,2nd Year,3rd Year,4th Year',
+        ], [
+            'course.required' => 'Please select a course.',
+            'course.in' => 'Selected course is invalid.',
+            'year_level.required' => 'Please select a year level.',
+            'year_level.in' => 'Selected year level is invalid.',
+        ]);
+
+        $course     = $validated['course'];
+        $year_level = $validated['year_level'];
         $raw = $request->input('id_numbers', $request->input('id_number'));
 
         if (is_array($raw)) {
@@ -66,6 +78,8 @@ class StudentRecordController extends Controller
         $now = now();
         $recordsToInsert = array_map(fn ($id) => [
             'id_number'   => $id,
+            'course'      => $course ?: null,
+            'year_level'  => $year_level ?: null,
             'is_disabled' => false,
             'created_at'  => $now,
             'updated_at'  => $now,
@@ -86,9 +100,9 @@ class StudentRecordController extends Controller
             $msg .= " ({$countSkipped} skipped because already exists).";
         }
 
-        RecentActivity::create([
+        $activity = RecentActivity::create([
             'name'   => auth()->user()->name,
-            'action' => 'added_student_records',
+            'action' => $countNew === 1 ? 'added_student_record' : 'added_student_records',
             'target' => $countNew === 1 ? $newIds[0] : "{$countNew} student IDs",
         ]);
 
@@ -100,6 +114,7 @@ class StudentRecordController extends Controller
             'added_count'   => $countNew,
             'skipped_count' => $countSkipped,
             'skipped_ids'   => $existing,
+            'activity'      => $activity,
         ]);
     }
 
@@ -125,7 +140,7 @@ class StudentRecordController extends Controller
 
         $statusText = $record->is_disabled ? 'disabled' : 'enabled';
 
-        RecentActivity::create([
+        $activity = RecentActivity::create([
             'name'   => auth()->user()->name,
             'action' => $record->is_disabled ? 'disabled_student_record' : 'enabled_student_record',
             'target' => $record->id_number,
@@ -136,6 +151,7 @@ class StudentRecordController extends Controller
             'is_disabled' => $record->is_disabled,
             'message'     => "Student ID {$record->id_number} has been {$statusText}.",
             'record'      => $record->load('user:id,id_number,name,email,disabled'),
+            'activity'    => $activity,
         ]);
     }
 
@@ -161,15 +177,16 @@ class StudentRecordController extends Controller
 
         $record->delete();
 
-        RecentActivity::create([
+        $activity = RecentActivity::create([
             'name'   => auth()->user()->name,
             'action' => 'deleted_student_record',
             'target' => $idNumber,
         ]);
 
         return response()->json([
-            'success' => true,
-            'message' => "Student ID {$idNumber} removed. Any associated user account has been disabled.",
+            'success'  => true,
+            'message'  => "Student ID {$idNumber} removed. Any associated user account has been disabled.",
+            'activity' => $activity,
         ]);
     }
 }

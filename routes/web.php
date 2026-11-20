@@ -272,7 +272,16 @@ Route::middleware(['auth','Admin'])->group(function(){
         $total_users = User::count();
         $total_admins = User::where('role', 'Admin')->count();
         $total_subjects = Subjects::count();
-        $recent_activities = RecentActivity::orderBy('created_at', 'DESC')->get();
+        $recent_activities = RecentActivity::whereNotIn('action', [
+            'added_student_record',
+            'added_student_records',
+            'disabled_student_record',
+            'enabled_student_record',
+            'deleted_student_record',
+            'attempted_login_disabled',
+        ])
+        ->orderBy('created_at', 'DESC')
+        ->get();
 
         $leaderboard = Leaderboard::where('points', '>', 0)
             ->orderBy('points', 'DESC')
@@ -382,11 +391,53 @@ Route::middleware(['auth','Admin'])->group(function(){
         $totalRecords = $records->count();
         $totalActive = $records->where('is_disabled', false)->count();
         $totalDisabled = $records->where('is_disabled', true)->count();
-        return view('Admin.Pages.Student_Records', compact('records', 'totalRecords', 'totalActive', 'totalDisabled'));
+
+        $activities = \App\Models\RecentActivity::whereIn('action', [
+            'added_student_record',
+            'added_student_records',
+            'disabled_student_record',
+            'enabled_student_record',
+            'deleted_student_record',
+            'attempted_login_disabled',
+        ])
+        ->orderBy('created_at', 'desc')
+        ->orderBy('id', 'desc')
+        ->take(50)
+        ->get();
+
+        $blockedAttemptsCount = $activities->where('action', 'attempted_login_disabled')->count();
+
+        return view('Admin.Pages.Student_Records', compact(
+            'records',
+            'totalRecords',
+            'totalActive',
+            'totalDisabled',
+            'activities',
+            'blockedAttemptsCount'
+        ));
     })->name('student_records_page');
     Route::post('/student-records', [StudentRecordController::class, 'store']);
     Route::patch('/student-records/toggle-disable', [StudentRecordController::class, 'toggleDisable']);
     Route::delete('/student-records', [StudentRecordController::class, 'destroy']);
+    Route::get('/student-records/activities', function () {
+        $activities = \App\Models\RecentActivity::whereIn('action', [
+            'added_student_record',
+            'added_student_records',
+            'disabled_student_record',
+            'enabled_student_record',
+            'deleted_student_record',
+            'attempted_login_disabled',
+        ])
+        ->orderBy('created_at', 'desc')
+        ->orderBy('id', 'desc')
+        ->take(50)
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'activities' => $activities,
+        ]);
+    });
 
     // FEEDBACKS
     Route::post('/sendReply', [FeedbackController::class, 'sendFeedbackReply']);

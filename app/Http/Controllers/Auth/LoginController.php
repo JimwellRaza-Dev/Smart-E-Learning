@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\RecentActivity;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\MailerService;
@@ -30,10 +31,56 @@ class LoginController extends Controller
             ->first();
 
         if (!$user) {
+            // Check if the input corresponds to a disabled student ID in records
+            $disabledRecord = StudentRecord::where('id_number', $loginInput)
+                ->where('is_disabled', true)
+                ->first();
+
+            if ($disabledRecord) {
+                RecentActivity::create([
+                    'name'   => 'Unregistered Student',
+                    'action' => 'attempted_login_disabled',
+                    'target' => (string) $disabledRecord->id_number,
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your student ID has been disabled. You are unable to log in. Please contact the administrator.',
+                ], 403);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'You have not registered yet. Please register first.'
             ], 422);
+        }
+
+        // Check if student ID or account is disabled before proceeding
+        $isRecordDisabled = false;
+        if ($user->id_number) {
+            $rec = StudentRecord::where('id_number', $user->id_number)->first();
+            if ($rec && $rec->is_disabled) {
+                $isRecordDisabled = true;
+            }
+        }
+
+        if ($user->disabled || $isRecordDisabled) {
+            if (!$user->disabled) {
+                $user->disabled = true;
+                $user->save();
+            }
+
+            RecentActivity::create([
+                'name'   => $user->name,
+                'action' => 'attempted_login_disabled',
+                'target' => (string) $user->id_number,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Your student account has been disabled. Please contact the administrator for assistance.',
+                'csrf_token' => csrf_token()
+            ], 403);
         }
 
         $credentials = [
@@ -104,6 +151,12 @@ class LoginController extends Controller
         }
 
         if ($user->disabled) {
+            RecentActivity::create([
+                'name'   => $user->name,
+                'action' => 'attempted_login_disabled',
+                'target' => (string) $user->id_number,
+            ]);
+
             Auth::logout();
 
             return response()->json([

@@ -26,8 +26,8 @@ class RecentActivity extends Model
                 ->orderBy('id', 'desc')
                 ->get();
 
-            if ($activities->count() > 20) {
-                $activities->slice(20)->each->delete();
+            if ($activities->count() > 100) {
+                $activities->slice(100)->each->delete();
             }
         });
     }

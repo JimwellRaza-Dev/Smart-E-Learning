@@ -9,6 +9,8 @@ class StudentRecord extends Model
 {
     protected $fillable = [
         'id_number',
+        'course',
+        'year_level',
         'is_disabled',
     ];
 
