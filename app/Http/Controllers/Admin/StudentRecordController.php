@@ -157,7 +157,7 @@ class StudentRecordController extends Controller
 
     /**
      * Delete a student record by ID.
-     * Any user with that deleted ID is permanently disabled and unable to log in again.
+     * Any user registered with that ID is also removed from users.
      */
     public function destroy(Request $request)
     {
@@ -168,11 +168,10 @@ class StudentRecordController extends Controller
         $record = StudentRecord::findOrFail($data['id']);
         $idNumber = $record->id_number;
 
-        // Permanently disable the user account associated with this ID so they cannot log in again
+        // Remove the registered user account associated with this ID if one exists
         $user = User::where('id_number', $idNumber)->first();
         if ($user) {
-            $user->disabled = true;
-            $user->save();
+            $user->delete();
         }
 
         $record->delete();
@@ -185,7 +184,7 @@ class StudentRecordController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => "Student ID {$idNumber} removed. Any associated user account has been disabled.",
+            'message'  => "Student ID {$idNumber} and its associated user account have been removed successfully.",
             'activity' => $activity,
         ]);
     }

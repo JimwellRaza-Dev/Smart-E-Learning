@@ -780,7 +780,7 @@
                                     Remove <span class="font-mono font-semibold sharedTXTOnLight">{{ recordToDelete?.id_number }}</span>?
                                 </p>
                                 <p class="text-xs text-red-600 font-semibold mt-1 m-0">
-                                    Warning: Any student registered with this ID will be permanently disabled and unable to log in again.
+                                    Warning: Any user registered with this ID will also be permanently deleted from the system.
                                 </p>
                             </div>
                         </div>

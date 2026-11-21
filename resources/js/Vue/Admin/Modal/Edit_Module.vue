@@ -83,6 +83,34 @@
                         />
                     </div>
 
+                    <!-- ORDER / POSITION -->
+                    <div class="w-full flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <label
+                                for="module_order"
+                                class="text-sm font-medium sharedTXTOnLight"
+                            >
+                                Module Order / Position
+                            </label>
+                            <span class="text-xs tabular-nums sharedTXTLightFaint">
+                                1 to {{ props.totalModules || 1 }}
+                            </span>
+                        </div>
+
+                        <input
+                            type="number"
+                            min="1"
+                            :max="props.totalModules || 99"
+                            v-model.number="moduleData.order"
+                            id="module_order"
+                            placeholder="e.g. 1"
+                            class="sharedInput sharedInputHover w-full border rounded-md p-2 outline-none text-sm focus:ring-2 transition-colors"
+                        />
+                        <span class="text-[11px] sharedTXTLightMuted">
+                            The sequence order in which this module appears for students.
+                        </span>
+                    </div>
+
                     <!-- DESCRIPTION -->
                     <div class="w-full flex flex-col gap-2" id="whiteBG">
                         <div class="flex items-center justify-between">
@@ -156,10 +184,11 @@ const props = defineProps({
         default: true
     },
     moduleData: { type: Object, default: ()=>({})},
-
+    totalModules: { type: Number, default: 1 },
+    subjectName: { type: String, default: '' },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'module_updated']);
 
 const descriptionLimit = 1000;
 
@@ -194,7 +223,9 @@ async function editModuleForm(id) {
             body: JSON.stringify({
                 module_id : id,
                 new_module_name : props.moduleData.module_name,
-                new_description : (props.moduleData.description || '').trim()
+                new_description : (props.moduleData.description || '').trim(),
+                new_order : props.moduleData.order,
+                subject_name : props.subjectName
             })
         });
 
@@ -206,6 +237,7 @@ async function editModuleForm(id) {
             message.value = data.message;
             toastType.value = 'success'
 
+            emit('module_updated', data.modules);
             emit('close');
         }else{
             showToast.value = true;

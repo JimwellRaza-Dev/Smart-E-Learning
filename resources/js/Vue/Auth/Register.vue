@@ -70,8 +70,7 @@
 
                 <div class="flex flex-col gap-[clamp(0.5rem,1.8vh,0.9rem)]">
 
-                    <!-- STUDENT ID NUMBER (COMMENTED OUT FOR DEBUGGING) -->
-                    <!--
+                    <!-- STUDENT ID NUMBER -->
                     <div class="flex flex-col gap-1.5">
                         <label for="register-id-number" class="ps-2 font-semibold sharedTXTOnLight text-sm">
                             Student ID Number
@@ -84,7 +83,6 @@
                             class="sharedInput border-[1.5px] rounded-full px-5 outline-none text-base md:text-sm w-full transition-all duration-200"
                             style="height:clamp(44px,5.5vh,56px)">
                     </div>
-                    -->
 
                     <!-- FULL NAME -->
                     <div class="flex flex-col gap-1.5">
@@ -282,9 +280,9 @@ async function registerForm(event) {
     const formEmail = String(formData.get('email') || email.value).trim();
     const formPassword = String(formData.get('password') || password.value);
     const formConfirmation = String(formData.get('password_confirmation') || password_confirmation.value);
-    // const formIdNumber = String(formData.get('id_number') || id_number.value).trim();
+    const formIdNumber = String(formData.get('id_number') || id_number.value).trim();
 
-    if (!formName || !formEmail || !formPassword || !formConfirmation) {
+    if (!formName || !formEmail || !formPassword || !formConfirmation || !formIdNumber) {
         registerErrors.value = ['Please complete all fields.'];
         return;
     }
@@ -311,7 +309,7 @@ async function registerForm(event) {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                // id_number: formIdNumber,
+                id_number: formIdNumber,
                 name: formName,
                 email: formEmail,
                 password: formPassword,

@@ -91,7 +91,7 @@
             <div class="flex items-center gap-1.5">
                 <span>Modules</span>
                 <span>•</span>
-                <span class="tabular-nums sharedTXTBody font-semibold">{{ localModules.filter(t => t.subject_id === props.subjectId).length }}</span>
+                <span class="tabular-nums sharedTXTBody font-semibold">{{ currentSubjectModules.length }}</span>
             </div>
 
             <span class="sharedTXTMuted opacity-40">|</span>
@@ -99,7 +99,7 @@
             <div class="flex items-center gap-1.5">
                 <span>Questions</span>
                 <span>•</span>
-                <span class="tabular-nums sharedTXTBody font-semibold">{{ questions.filter(q => localModules.some(m => m.id === q.module_id && m.subject_id === props.subjectId)).length }}</span>
+                <span class="tabular-nums sharedTXTBody font-semibold">{{ questions.filter(q => currentSubjectModules.some(m => m.id === q.module_id)).length }}</span>
             </div>
 
         </div>
@@ -108,7 +108,7 @@
 
             <!-- MODULES -->
             <template
-                v-for="(module) in localModules.filter(module => module.subject_id === props.subjectId)"
+                v-for="(module, index) in currentSubjectModules"
                 :key="module.id"
             >
 
@@ -144,7 +144,34 @@
 
                         </div>
 
-                        
+                        <!-- REORDER BUTTONS -->
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button
+                                type="button"
+                                @click="moveModule(module.id, 'up')"
+                                :disabled="index === 0 || isReordering"
+                                aria-label="Move module up"
+                                title="Move Up"
+                                class="flex size-7 items-center justify-center rounded-lg border sharedBorder sharedTXTMuted sharedTile hover:sharedTXT active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed disabled:pointer-events-none"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                                </svg>
+                            </button>
+
+                            <button
+                                type="button"
+                                @click="moveModule(module.id, 'down')"
+                                :disabled="index === currentSubjectModules.length - 1 || isReordering"
+                                aria-label="Move module down"
+                                title="Move Down"
+                                class="flex size-7 items-center justify-center rounded-lg border sharedBorder sharedTXTMuted sharedTile hover:sharedTXT active:scale-95 transition-all duration-150 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed disabled:pointer-events-none"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            </button>
+                        </div>
 
                     </div>
 
@@ -301,7 +328,10 @@
     <Edit_Module
         :show-edit-module="showEditModule"
         :module-data="selectedEditModule"
+        :total-modules="currentSubjectModules.length"
+        :subject-name="props.subjectName"
         @close="closeEditModule"
+        @module_updated="handleModuleUpdated"
     />
 
     <Delete_Module
@@ -332,14 +362,22 @@
         @topic_deleted="handleTopicDeleted"
     />
 
+    <Toast
+        :show="showToast"
+        :message="toastMessage"
+        :type="toastType"
+        @close="showToast = false"
+    />
+
 </template>
 
 
 <script setup>
 
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 import Admin_Menu from '../Pages/Admin_Menu.vue'
+import Toast from '../components/Toast.vue'
 
 import Add_Modules from '../Modal/Add_Modules.vue'
 import Edit_Module from '../Modal/Edit_Module.vue'
@@ -403,6 +441,68 @@ function initials(name) {
 
 const localModules = ref([...props.modules])
 
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastType = ref('success')
+const isReordering = ref(false)
+
+const currentSubjectModules = computed(() => {
+    return localModules.value
+        .filter(module => module.subject_id === props.subjectId)
+        .slice()
+        .sort((a, b) => a.order - b.order)
+})
+
+async function moveModule(moduleId, direction) {
+    if (isReordering.value) return
+    isReordering.value = true
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+
+    try {
+        const response = await fetch('/reorderModule', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                module_id: moduleId,
+                direction: direction,
+                subject_name: props.subjectName
+            })
+        })
+
+        const data = await response.json()
+        if (data.success && data.modules) {
+            handleModuleUpdated(data.modules)
+            showToast.value = true
+            toastMessage.value = data.message || 'Module order updated!'
+            toastType.value = 'success'
+        } else {
+            showToast.value = true
+            toastMessage.value = data.message || 'Failed to reorder module.'
+            toastType.value = 'error'
+        }
+    } catch (err) {
+        showToast.value = true
+        toastMessage.value = 'An error occurred while reordering.'
+        toastType.value = 'error'
+    } finally {
+        isReordering.value = false
+    }
+}
+
+function handleModuleUpdated(updatedModules) {
+    if (updatedModules && Array.isArray(updatedModules)) {
+        localModules.value = [
+            ...localModules.value.filter(m => m.subject_id !== props.subjectId),
+            ...updatedModules
+        ]
+    }
+}
+
 
 watch(() => props.modules, (newVal) => {
     localModules.value = [...newVal]
@@ -455,7 +555,7 @@ function closeAddModule() {
 
 
 function openEditModule(module) {
-    selectedEditModule.value = module
+    selectedEditModule.value = { ...module }
     showEditModule.value = true
 }
 

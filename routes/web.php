@@ -465,6 +465,7 @@ Route::middleware(['auth','Admin'])->group(function(){
     // MODULES
     Route::post('/addModule',[ModuleController::class, 'addModule']);
     Route::put('/editModule', [ModuleController::class, 'editModule']);
+    Route::post('/reorderModule', [ModuleController::class, 'reorderModule']);
     Route::delete('deleteModule', [ModuleController::class, 'deleteModule']);
 
     // TOPICS
