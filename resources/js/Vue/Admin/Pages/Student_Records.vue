@@ -185,7 +185,7 @@
             <button
                 type="button"
                 @click="showAddModal = true"
-                class="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium sharedBtn cursor-pointer active:scale-95 transition-all duration-200 shrink-0 self-end sm:self-auto"
+                class="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium sharedBtn cursor-pointer active:scale-95 transition-all duration-200 shrink-0 w-full sm:w-auto"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5 sm:size-4 shrink-0">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -209,16 +209,19 @@
                 :class="currentView === 'split' ? 'xl:flex-[1.4]' : ''"
             >
                 <!-- TABLE CONTROLS BAR -->
-                <div class="p-3 sm:p-4 border-b sharedBorder flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
+                <div
+                    class="p-3 sm:p-4 border-b sharedBorder flex flex-col gap-3 shrink-0"
+                    :class="currentView === 'split' ? '2xl:flex-row 2xl:items-center 2xl:justify-between' : 'lg:flex-row lg:items-center lg:justify-between'"
+                >
 
                     <!-- STATUS TABS -->
-                    <div class="flex items-center gap-1 p-1 rounded-xl border sharedBorder sharedTile w-fit max-w-full overflow-x-auto">
+                    <div class="flex items-center gap-1 p-1 rounded-xl border sharedBorder sharedTile w-fit max-w-full overflow-x-auto scrollbar-none shrink-0">
                         <button
                             v-for="tab in statusTabs"
                             :key="tab"
                             type="button"
                             @click="activeTab = tab"
-                            class="px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer"
+                            class="px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer shrink-0"
                             :class="activeTab === tab
                                 ? 'sharedBtn shadow-xs'
                                 : 'sharedTXTMuted sharedRowHover sharedHoverTXT'"
@@ -228,8 +231,14 @@
                     </div>
 
                     <!-- SEARCH INPUT & RECORD COUNT -->
-                    <div class="flex items-center gap-3">
-                        <div class="relative w-full sm:w-[240px]">
+                    <div
+                        class="flex items-center gap-2.5 sm:gap-3 w-full"
+                        :class="currentView === 'split' ? '2xl:w-auto' : 'lg:w-auto'"
+                    >
+                        <div
+                            class="relative flex-1"
+                            :class="currentView === 'split' ? '2xl:w-[220px] 2xl:flex-none' : 'lg:w-[240px] lg:flex-none'"
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor"
                                 class="size-4 absolute left-3 top-1/2 -translate-y-1/2 z-10 sharedTXTMuted pointer-events-none">
@@ -247,146 +256,155 @@
                                     focus:ring-1 transition-all duration-200"
                             >
                         </div>
-                        <span class="text-xs font-medium sharedTXTMuted shrink-0 hidden sm:inline" aria-live="polite">
+                        <span class="text-xs font-medium sharedTXTMuted shrink-0 whitespace-nowrap" aria-live="polite">
                             {{ filteredRecords.length }} {{ filteredRecords.length === 1 ? 'record' : 'records' }}
                         </span>
                     </div>
 
                 </div>
 
-                <!-- TABLE HEADER (Desktop) -->
-                <div
-                    class="hidden lg:grid shrink-0 gap-3 px-4 py-2.5 border-b sharedBorder text-xs font-medium sharedTXTMuted"
-                    :class="gridCols"
-                >
-                    <span>ID Number</span>
-                    <span>Course & Year</span>
-                    <span>Registered Account</span>
-                    <span class="text-center">Status</span>
-                    <span class="text-right">Actions</span>
-                </div>
-
-                <!-- TABLE ROWS -->
-                <ul class="overflow-y-auto flex-1 min-h-[300px] scrollbar-thin">
-                    <li
-                        v-for="record in filteredRecords"
-                        :key="record.id"
-                        class="flex flex-col gap-3 px-4 py-3 border-b sharedBorder last:border-b-0 sharedRowHover transition-colors duration-200
-                               lg:grid lg:items-center lg:gap-3"
-                        :class="gridCols"
+                <!-- UNIFIED TABLE SCROLL WRAPPER (Header and Rows scroll together with synchronized columns) -->
+                <div class="flex-1 min-h-0 flex flex-col overflow-x-auto overflow-y-hidden scrollbar-thin">
+                    <div
+                        class="min-w-full flex-1 flex flex-col"
+                        :class="currentView === 'split' ? 'min-w-[560px]' : 'min-w-[660px] lg:min-w-0'"
                     >
-                        <!-- ID Number & Mobile Badges -->
-                        <div class="flex items-center justify-between lg:justify-start gap-2 min-w-0">
-                            <span class="text-sm font-mono font-semibold sharedTXT tabular-nums truncate">
-                                {{ record.id_number }}
-                            </span>
+                        <!-- TABLE HEADER (Desktop) -->
+                        <div
+                            class="hidden lg:grid shrink-0 items-center px-3 sm:px-4 py-2.5 border-b sharedBorder text-xs font-medium sharedTXTMuted select-none"
+                            :class="[gridCols, gridGap]"
+                        >
+                            <span class="truncate">ID Number</span>
+                            <span class="truncate">Course & Year</span>
+                            <span class="truncate">Registered Account</span>
+                            <span class="text-center truncate">Status</span>
+                            <span class="text-right truncate">Actions</span>
+                        </div>
 
-                            <!-- Mobile Status Badge -->
-                            <span
-                                class="lg:hidden shrink-0 inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium"
-                                :class="record.is_disabled
-                                    ? 'sharedStateDanger sharedStateChip ring-1'
-                                    : record.user
-                                        ? 'sharedStateOpen sharedStateChip ring-1'
-                                        : 'sharedStateWarning sharedTile sharedRingSoft'"
+                        <!-- TABLE ROWS -->
+                        <ul class="overflow-y-auto flex-1 min-h-[300px] scrollbar-thin">
+                            <li
+                                v-for="record in filteredRecords"
+                                :key="record.id"
+                                class="flex flex-col gap-3 px-3 sm:px-4 py-3 border-b sharedBorder last:border-b-0 sharedRowHover transition-colors duration-200
+                                       lg:grid lg:items-center"
+                                :class="[gridCols, gridGap]"
                             >
-                                {{ record.is_disabled ? 'Disabled' : record.user ? 'Active' : 'Unregistered' }}
-                            </span>
-                        </div>
+                                <!-- ID Number & Mobile Badges -->
+                                <div class="flex items-center justify-between lg:justify-start gap-2 min-w-0">
+                                    <span class="text-sm font-mono font-semibold sharedTXT tabular-nums truncate" :title="record.id_number">
+                                        {{ record.id_number }}
+                                    </span>
 
-                        <!-- Course & Year -->
-                        <div class="flex flex-col gap-0.5 min-w-0 text-xs">
-                            <span v-if="record.course" class="font-medium sharedTXT truncate">{{ record.course }}</span>
-                            <span v-if="record.year_level" class="sharedTXTMuted truncate">{{ record.year_level }}</span>
-                            <span v-if="!record.course && !record.year_level" class="sharedTXTMuted italic text-[11px]">—</span>
-                        </div>
+                                    <!-- Mobile Status Badge -->
+                                    <span
+                                        class="lg:hidden shrink-0 inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium"
+                                        :class="record.is_disabled
+                                            ? 'sharedStateDanger sharedStateChip ring-1'
+                                            : record.user
+                                                ? 'sharedStateOpen sharedStateChip ring-1'
+                                                : 'sharedStateWarning sharedTile sharedRingSoft'"
+                                    >
+                                        {{ record.is_disabled ? 'Disabled' : record.user ? 'Active' : 'Unregistered' }}
+                                    </span>
+                                </div>
 
-                        <!-- Registered Account info -->
-                        <div class="flex items-center gap-2 min-w-0 text-xs">
-                            <template v-if="record.user">
-                                <span class="font-medium sharedTXT truncate" :title="record.user.name">
-                                    {{ record.user.name }}
-                                </span>
-                                <span class="sharedTXTMuted font-mono truncate hidden sm:inline" :title="record.user.email">
-                                    ({{ record.user.email }})
-                                </span>
-                            </template>
-                            <template v-else>
-                                <span class="sharedTXTMuted italic text-[11px]">
-                                    Not yet registered
-                                </span>
-                            </template>
-                        </div>
+                                <!-- Course & Year -->
+                                <div class="flex flex-col gap-0.5 min-w-0 text-xs">
+                                    <span v-if="record.course" class="font-medium sharedTXT truncate" :title="record.course">{{ record.course }}</span>
+                                    <span v-if="record.year_level" class="sharedTXTMuted truncate" :title="record.year_level">{{ record.year_level }}</span>
+                                    <span v-if="!record.course && !record.year_level" class="sharedTXTMuted italic text-[11px]">—</span>
+                                </div>
 
-                        <!-- Desktop Status Badge -->
-                        <div class="hidden lg:flex justify-center">
-                            <span
-                                class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium"
-                                :class="record.is_disabled
-                                    ? 'sharedStateDanger sharedStateChip ring-1'
-                                    : record.user
-                                        ? 'sharedStateOpen sharedStateChip ring-1'
-                                        : 'sharedStateWarning sharedTile sharedRingSoft'"
-                            >
-                                {{ record.is_disabled ? 'Disabled' : record.user ? 'Active' : 'Unregistered' }}
-                            </span>
-                        </div>
+                                <!-- Registered Account info -->
+                                <div class="flex items-center gap-1.5 min-w-0 text-xs">
+                                    <template v-if="record.user">
+                                        <span class="font-medium sharedTXT truncate" :title="record.user.name">
+                                            {{ record.user.name }}
+                                        </span>
+                                        <span
+                                            class="sharedTXTMuted font-mono truncate"
+                                            :class="currentView === 'split' ? 'hidden 2xl:inline' : 'hidden sm:inline'"
+                                            :title="record.user.email"
+                                        >
+                                            ({{ record.user.email }})
+                                        </span>
+                                    </template>
+                                    <template v-else>
+                                        <span class="sharedTXTMuted italic text-[11px] truncate">
+                                            Not yet registered
+                                        </span>
+                                    </template>
+                                </div>
 
-                        <!-- Actions -->
-                        <div class="flex items-center gap-2 lg:gap-1.5 lg:justify-end">
+                                <!-- Desktop Status Badge -->
+                                <div class="hidden lg:flex justify-center">
+                                    <span
+                                        class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap"
+                                        :class="record.is_disabled
+                                            ? 'sharedStateDanger sharedStateChip ring-1'
+                                            : record.user
+                                                ? 'sharedStateOpen sharedStateChip ring-1'
+                                                : 'sharedStateWarning sharedTile sharedRingSoft'"
+                                    >
+                                        {{ record.is_disabled ? 'Disabled' : record.user ? 'Active' : 'Unregistered' }}
+                                    </span>
+                                </div>
 
-                            <!-- DISABLE / ENABLE BUTTON -->
-                            <button
-                                type="button"
-                                @click="promptToggleDisable(record)"
-                                :aria-label="`${record.is_disabled ? 'Enable' : 'Disable'} ${record.id_number}`"
-                                :title="record.is_disabled ? 'Enable ID' : 'Disable ID'"
-                                class="flex-1 lg:flex-none flex items-center justify-center gap-1.5 px-2.5 min-h-9 lg:min-h-0 lg:py-1.5 rounded-xl text-xs font-medium ring-1
-                                    active:scale-95 transition-all duration-200 cursor-pointer"
-                                :class="record.is_disabled
-                                    ? 'sharedStateOpen sharedStateChip sharedStateChipLink'
-                                    : 'sharedStateWarning sharedTile sharedRingSoft sharedHoverState'"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 shrink-0">
-                                    <path
-                                        v-if="record.is_disabled"
-                                        stroke-linecap="round" stroke-linejoin="round"
-                                        d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-                                    />
-                                    <path
-                                        v-else
-                                        stroke-linecap="round" stroke-linejoin="round"
-                                        d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-                                    />
+                                <!-- Actions -->
+                                <div class="flex items-center gap-1.5 lg:justify-end">
+
+                                    <!-- DISABLE / ENABLE BUTTON -->
+                                    <button
+                                        type="button"
+                                        @click="promptToggleDisable(record)"
+                                        :aria-label="`${record.is_disabled ? 'Enable' : 'Disable'} ${record.id_number}`"
+                                        :title="record.is_disabled ? 'Enable ID' : 'Disable ID'"
+                                        class="flex-1 lg:flex-none flex items-center justify-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 min-h-9 lg:min-h-0 rounded-xl text-xs font-medium ring-1 whitespace-nowrap shrink-0 active:scale-95 transition-all duration-200 cursor-pointer"
+                                        :class="record.is_disabled
+                                            ? 'sharedStateOpen sharedStateChip sharedStateChipLink'
+                                            : 'sharedStateWarning sharedTile sharedRingSoft sharedHoverState'"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 shrink-0">
+                                            <path
+                                                v-if="record.is_disabled"
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+                                            />
+                                            <path
+                                                v-else
+                                                stroke-linecap="round" stroke-linejoin="round"
+                                                d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+                                            />
+                                        </svg>
+                                        <span class="whitespace-nowrap">{{ record.is_disabled ? 'Enable' : 'Disable' }}</span>
+                                    </button>
+
+                                    <!-- REMOVE BUTTON -->
+                                    <button
+                                        type="button"
+                                        @click="confirmDelete(record)"
+                                        :aria-label="`Remove ${record.id_number}`"
+                                        title="Remove ID"
+                                        class="flex-1 lg:flex-none flex items-center justify-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 min-h-9 lg:min-h-0 rounded-xl text-xs font-medium ring-1 whitespace-nowrap shrink-0 sharedStateDanger sharedStateChip sharedDangerSolidHover active:scale-95 transition-all duration-200 cursor-pointer"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 shrink-0">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                        <span class="whitespace-nowrap">Remove</span>
+                                    </button>
+                                </div>
+                            </li>
+
+                            <li v-if="filteredRecords.length === 0" class="px-4 py-12 text-center text-sm sharedTXTMuted flex flex-col items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 opacity-40">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                                 </svg>
-                                <span>{{ record.is_disabled ? 'Enable' : 'Disable' }}</span>
-                            </button>
-
-                            <!-- REMOVE BUTTON -->
-                            <button
-                                type="button"
-                                @click="confirmDelete(record)"
-                                :aria-label="`Remove ${record.id_number}`"
-                                title="Remove ID"
-                                class="flex-1 lg:flex-none flex items-center justify-center gap-1.5 px-2.5 min-h-9 lg:min-h-0 lg:py-1.5 rounded-xl text-xs font-medium ring-1
-                                    sharedStateDanger sharedStateChip sharedDangerSolidHover
-                                    active:scale-95 transition-all duration-200 cursor-pointer"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5 shrink-0">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                </svg>
-                                <span>Remove</span>
-                            </button>
-                        </div>
-                    </li>
-
-                    <li v-if="filteredRecords.length === 0" class="px-4 py-12 text-center text-sm sharedTXTMuted flex flex-col items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 opacity-40">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                        </svg>
-                        <span>{{ searchQuery ? 'No records match your search.' : 'No student IDs found for this filter.' }}</span>
-                    </li>
-                </ul>
+                                <span>{{ searchQuery ? 'No records match your search.' : 'No student IDs found for this filter.' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <!-- ========================================================================= -->
@@ -440,7 +458,7 @@
                             :key="flt.value"
                             type="button"
                             @click="activityFilter = flt.value"
-                            class="px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5"
+                            class="px-2.5 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 shrink-0"
                             :class="activityFilter === flt.value
                                 ? (flt.value === 'blocked' ? 'bg-red-500 text-white shadow-xs' : 'sharedBtn shadow-xs')
                                 : 'sharedTXTMuted sharedRowHover sharedHoverTXT'"
@@ -594,7 +612,7 @@
                         <p v-if="addError" class="sharedTXTDanger text-sm text-center m-0">{{ addError }}</p>
 
                         <!-- COURSE & YEAR LEVEL DROPDOWNS -->
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div class="flex flex-col gap-1.5">
                                 <label for="add-course" class="text-sm font-medium sharedTXTOnLight">
                                     Course <span class="text-red-500">*</span>
@@ -820,7 +838,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import Toast from '../components/Toast.vue';
 
 const props = defineProps({
@@ -857,12 +875,37 @@ function loadViewedBlockedAttemptKeys() {
     }
 }
 
-const gridCols =
-    'lg:grid-cols-[160px_minmax(0,1fr)_minmax(0,1.2fr)_110px_200px] ' +
-    'xl:grid-cols-[180px_minmax(0,1fr)_minmax(0,1.2fr)_120px_220px]';
-
 // View states: 'records', 'dashboard', 'split'
 const currentView = ref('records');
+
+// Responsive table grid columns tailored for full view vs split view
+const gridCols = computed(() => {
+    if (currentView.value === 'split') {
+        return 'grid-cols-[105px_minmax(80px,1fr)_minmax(110px,1.2fr)_85px_145px]';
+    }
+    return (
+        'lg:grid-cols-[130px_minmax(100px,1fr)_minmax(130px,1.3fr)_95px_170px] ' +
+        'xl:grid-cols-[150px_minmax(120px,1fr)_minmax(150px,1.3fr)_105px_180px]'
+    );
+});
+
+const gridGap = computed(() => (currentView.value === 'split' ? 'gap-2 xl:gap-2.5' : 'gap-3'));
+
+function handleWindowResize() {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth < 1280 && currentView.value === 'split') {
+        currentView.value = 'records';
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('resize', handleWindowResize);
+    handleWindowResize();
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', handleWindowResize);
+});
 
 const statusTabs = ['All', 'Active', 'Unregistered', 'Disabled'];
 const activeTab = ref('All');
