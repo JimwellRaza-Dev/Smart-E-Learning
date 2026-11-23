@@ -266,7 +266,7 @@
                 <!-- UNIFIED TABLE SCROLL WRAPPER (Header and Rows scroll together with synchronized columns) -->
                 <div class="flex-1 min-h-0 flex flex-col overflow-x-auto overflow-y-hidden scrollbar-thin">
                     <div
-                        class="min-w-full flex-1 flex flex-col"
+                        class="min-w-full min-h-0 flex-1 flex flex-col"
                         :class="currentView === 'split' ? 'min-w-[560px]' : 'min-w-[660px] lg:min-w-0'"
                     >
                         <!-- TABLE HEADER (Desktop) -->
@@ -282,7 +282,7 @@
                         </div>
 
                         <!-- TABLE ROWS -->
-                        <ul class="overflow-y-auto flex-1 min-h-[300px] scrollbar-thin">
+                        <ul class="overflow-y-auto flex-1 min-h-[300px] max-h-[calc(100dvh-22rem)] scrollbar-thin">
                             <li
                                 v-for="record in filteredRecords"
                                 :key="record.id"
@@ -498,7 +498,7 @@
                 </div>
 
                 <!-- ACTIVITIES LIST -->
-                <ul class="overflow-y-auto flex-1 min-h-[300px] scrollbar-thin p-3 sm:p-4 flex flex-col gap-2.5">
+                <ul class="overflow-y-auto flex-1 min-h-[300px] max-h-[calc(100dvh-22rem)] scrollbar-thin p-3 sm:p-4 flex flex-col gap-2.5">
                     <li
                         v-for="act in filteredActivities"
                         :key="act.id || act.created_at + act.target"

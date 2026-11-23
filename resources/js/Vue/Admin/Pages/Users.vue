@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full min-w-0 shrink-0 md:shrink md:flex-1 md:min-h-[320px] flex flex-col gap-4">
+    <div class="w-full min-w-0 shrink-0 md:shrink md:flex-1 md:min-h-0 flex flex-col gap-4">
 
         <div class="w-full shrink-0 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
 

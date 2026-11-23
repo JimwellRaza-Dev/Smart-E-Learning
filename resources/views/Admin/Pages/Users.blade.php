@@ -29,7 +29,7 @@
         ></bottom-navigation>
 
         
-        <main class="h-full min-w-0 md:w-[calc(100%-280px)] w-full flex flex-col md:ml-[280px] ml-0 p-3 sm:p-5 overflow-y-auto max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden">
+        <main class="h-full min-w-0 md:w-[calc(100%-280px)] w-full flex flex-col md:ml-[280px] ml-0 p-3 sm:p-5 overflow-y-auto md:overflow-hidden max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden">
 
             {{-- HEADER --}}
             <admin-header
